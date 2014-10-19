@@ -1,0 +1,80 @@
+---
+output: html_document
+---
+# Peer Assessment 1
+HE Ying Daniel
+
+## Loading and preprocessing the data
+
+```{r}
+setwd("C:\\Temp\\test")
+data0<-read.csv("activity.csv",colClasses = c("numeric", "character","numeric"))
+good<-complete.cases(data0)
+data1<-data0[good,]
+```
+
+## What is mean total number of steps taken per day?
+
+```{r}
+library(ggplot2)
+aggsteps<-aggregate(steps~date,data1,sum)
+mean(aggsteps$steps)
+median(aggsteps$steps)
+qplot(aggsteps$steps,data=aggsteps)
+```
+
+## What is the average daily activity pattern?
+
+```{r}
+meaninterval<-aggregate(steps~interval,data1,mean)
+meaninterval[which.max(meaninterval$steps),]
+g<-ggplot(meaninterval,aes(x=interval,y=steps))
+g+geom_line()
+
+```
+
+## Imputing missing values
+
+```{r}
+mdata<-data0[!good,]
+nrow(mdata) ## row number for "NA" 
+meansteps<-aggregate(steps~interval,data=data0,FUN=mean)
+
+for(i in 1:nrow(data0)){
+        if(is.na(data0$steps[i])){
+                inver<-data0$interval[i]
+                rowid<-which(meansteps$interval==inver)
+                step<-meansteps$steps[rowid]
+                data0$steps[i]<-step
+        } 
+        } 
+        
+fillstep<-aggregate(steps~date,data=data0,sum,na.rm=TRUE)
+qplot(fillstep$steps,data=fillstep)
+mean(fillstep$steps)
+median(fillstep$steps)
+```
+
+## Are there differences in activity patterns between weekdays and weekends?
+
+```{r}
+Sys.setlocale("LC_TIME","Chinese")
+weekdays(Sys.Date()+0:6)
+Sys.setlocale("LC_TIME","English")
+weekdays(Sys.Date()+0:6)
+data0$date<-as.Date(data0$date,"%Y-%m-%d")
+data0$day<-weekdays(data0$date)
+data0$type<-c("weekday")
+for(i in 1:nrow(data0)){
+        if(data0$day[i]=="Saturday"||data0$day[i]=="Sunday"){
+                data0$type[i]<-"weekend"
+        } else{
+                data0$type[i]<-"weekday"
+        }
+}
+
+data0$type<-as.factor(data0$type)
+tabledata<-aggregate(steps~interval+type,data0,mean)
+qplot(interval,steps,data=tabledata,geom=c("line"),xlab="Interval",ylab="Number of Steps",main="")+facet_wrap(~type,ncol=1)
+```
+
