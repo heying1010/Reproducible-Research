@@ -1,5 +1,5 @@
 ---
-output: html_document
+output: word_document
 ---
 # Peer Assessment 1
 HE Ying Daniel
