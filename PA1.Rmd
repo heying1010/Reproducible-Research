@@ -76,6 +76,5 @@ for(i in 1:nrow(data0)){
 data0$type<-as.factor(data0$type)
 tabledata<-aggregate(steps~interval+type,data0,mean)
 qplot(interval,steps,data=tabledata,geom=c("line"),xlab="Interval",ylab="Number of Steps",main="")+facet_wrap(~type,ncol=1)
- knit2html("PA1.Rmd")
 ```
 
