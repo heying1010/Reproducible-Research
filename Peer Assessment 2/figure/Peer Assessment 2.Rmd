@@ -1,0 +1,77 @@
+Reproducible Research: Peer Assessment 2
+-------
+An Analysis Report of Health and Economic Impact by Severe Weather Events 
+---
+## Synopsis
+
+Storm and other severe weather events can cause both public health and economic problems for communities and municipalities. Many severs events can results in fatalities, injuries and property damage. Preventing such outcomes to the extent possible is a key concern. The U.S. National Oceanic and Atmospheric Administration's (NOAA) storm database tracks characteristics of major storms and weather events in the United States, include when and where they occur, aswell as estimates of any fatalities, injuries and property damage.In this report, we use the damage of fatalities and injuries to measure the impact of severe wether events on health. And, we employ property damage and crop damage to measure the impact of sever wether events on the economy.
+
+
+## Data Process
+
+```{r}
+setwd("C:\\Temp")
+cache=TRUE
+Sys.setlocale("LC_TIME", "English")
+storm_data <- read.csv(bzfile("repdata-data-StormData.csv.bz2", 
+                                 open = "r", encoding = getOption("encoding"),
+                                 compression = 9), header = TRUE, sep = ",")
+
+usedata <- c("EVTYPE", "FATALITIES", "INJURIES", "PROPDMG", "CROPDMG")
+mydata <- storm_data[usedata]
+head(mydata)
+```
+
+## Exacting the data contain weather event, health and economic impact data
+
+```{r}
+mydata$FATALITIES<-as.numeric(unlist(mydata$FATALITIES))
+mydata$INJURIES<-as.numeric(unlist(mydata$INJURIES))
+mydata$PROPDMG<-as.numeric(unlist(mydata$PROPDMG))
+mydata$CROPDMG<-as.numeric(unlist(mydata$CROPDMG))
+mydata$EVTYPE<-as.factor(mydata$EVTYPE)
+```
+
+## Aggregate the data by event
+
+```{r}
+agg<-aggregate(.~EVTYPE,data=mydata,FUN=sum,na.rm=TRUE)
+
+fal<-agg[order(-agg$FATALITIES),1:2]
+inj<-agg[order(-agg$INJURIES),c(1,3)]
+pro<-agg[order(-agg$PROPDMG),c(1,4)]
+cro<-agg[order(-agg$CROPDMG),c(1,5)]
+
+fal<-fal[1:3,]
+inj<-inj[1:3,]
+pro<-pro[1:3,]
+cro<-cro[1:3,]
+
+fal$FATALITIES<-fal$FATALITIES/1000000000
+inj$INJURIES<-inj$INJURIES/1000000000
+pro$PROPDMG<-pro$PROPDMG/1000000000
+cro$CROPDMG<-cro$CROPDMG/1000000000
+```
+
+## Results
+
+Weather Events for Health Impact
+```{r}
+library(ggplot2)
+q<-ggplot(fal,aes(x=EVTYPE))
+q+geom_bar(aes(x=fal$EVTYPE,weight=fal$FATALITIES,width=.5,fill="red"))+ylab("Damange in billion")+ggtitle("Top 3 Weather Events for FATALITIES")
+
+j<-ggplot(inj,aes(x=EVTYPE))
+j+geom_bar(aes(inj$EVTYPE,weight=inj$INJURIES,width=.5,color="white"))+ylab("Damange in billion")+ggtitle("Top 3 Weather Events for INJURIES")
+```
+
+Weather Events for Economic Impact
+```{r}
+p<-ggplot(pro,aes(x=EVTYPE))
+p+geom_bar(aes(pro$EVTYPE,weight=pro$PROPDMG,width=.5))+ylab("Damange in billion")+ggtitle("Top 3 Weather Events for PROPDMG")
+
+c<-ggplot(cro,aes(x=EVTYPE))
+c+geom_bar(aes(cro$EVTYPE,weight=cro$CROPDMG,width=.5))+ylab("Damange in billion")+ggtitle("Top 3 Weather Events for CROPDMG")
+```
+
+### Hence, TSTM WIND,HAIL,TORNADO not only caused the greatest health impact, but also great economic impact.
